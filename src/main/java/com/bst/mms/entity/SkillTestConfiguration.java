@@ -12,10 +12,13 @@ public class SkillTestConfiguration {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    private Integer skillTestId;
+
+    private String title;
+
     private Integer topicId;
 
     private Integer questionCount;
 
-    @Enumerated(EnumType.ORDINAL)
-    private SkillLevel skillLevel;
+    private Integer difficultyLevel;
 }

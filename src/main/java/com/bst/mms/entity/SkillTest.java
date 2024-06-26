@@ -1,10 +1,10 @@
 package com.bst.mms.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Data;
+
+import java.util.List;
+import java.util.Map;
 
 @Entity
 @Data
@@ -12,4 +12,7 @@ public class SkillTest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     private Integer id;
+
+    @ElementCollection
+    private Map<Integer, List<Integer>> questionAndAnswerIds;
 }
