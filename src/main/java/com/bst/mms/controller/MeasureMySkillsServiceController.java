@@ -1,17 +1,17 @@
 package com.bst.mms.controller;
 
+import com.bst.mms.dto.QuestionDTO;
 import com.bst.mms.entity.SkillTest;
 import com.bst.mms.entity.SkillTestConfiguration;
 import com.bst.mms.service.MeasureMySkillsService;
+import com.bst.mms.service.SkillTestConfigurationService;
+import com.bst.mms.service.SkillTestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map.Entry;
 import java.util.List;
-import java.util.Map;
 
 @RequestMapping("mms")
 @RestController
@@ -20,20 +20,25 @@ public class MeasureMySkillsServiceController {
     @Autowired
     private MeasureMySkillsService measureMySkillsService;
 
+    @Autowired
+    private SkillTestConfigurationService skillTestConfigurationService;
+
+    @Autowired
+    private SkillTestService skillTestService;
+
     @PostMapping("config/create")
-    public ResponseEntity<Integer> createSkillTestConfiguration(@RequestBody SkillTestConfiguration
+    public ResponseEntity<SkillTestConfiguration> createSkillTestConfiguration(@RequestBody SkillTestConfiguration
                                                                             skillTestConfiguration) {
 
-        ResponseEntity<Integer> configCreateResponseEntity = null;
+        ResponseEntity<SkillTestConfiguration> configCreateResponseEntity = null;
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-        Integer configId = null;
         try{
-            configId = measureMySkillsService.saveSkillTestConfiguration(skillTestConfiguration);
+            skillTestConfiguration = skillTestConfigurationService.saveSkillTestConfiguration(skillTestConfiguration);
             httpStatus = HttpStatus.CREATED;
         }catch (Exception exception) {
             System.out.println("Exception:"+exception.getMessage());
         }finally {
-            configCreateResponseEntity = new ResponseEntity<>(configId, httpStatus);
+            configCreateResponseEntity = new ResponseEntity<>(skillTestConfiguration, httpStatus);
         }
         return configCreateResponseEntity;
     }
@@ -45,7 +50,7 @@ public class MeasureMySkillsServiceController {
         SkillTestConfiguration skillTestConfiguration = null;
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
         try{
-            skillTestConfiguration = measureMySkillsService.findConfiguration(configId);
+            skillTestConfiguration = skillTestConfigurationService.findConfiguration(configId);
             httpStatus = HttpStatus.OK;
         }catch (Exception exception) {
             System.out.println("Exception:"+exception.getMessage());
@@ -56,42 +61,39 @@ public class MeasureMySkillsServiceController {
     }
 
     @PostMapping("test/create")
-    public ResponseEntity<Map<Integer, Entry<String, List<Entry<Integer, String>>>>> createSkillTest(
-            @RequestBody SkillTestConfiguration skillTestConfiguration ) {
+    public ResponseEntity<List<QuestionDTO>> createSkillTest(
+            @RequestBody SkillTestConfiguration skillTestConfiguration) {
 
-        ResponseEntity<Map<Integer, Entry<String, List<Entry<Integer, String>>>>>  createResponseEntity = null;
-        Map<Integer, Entry<String, List<Entry<Integer, String>>>> questionAndAnswersMap = new HashMap<>();
+        ResponseEntity<List<QuestionDTO>>  createdResponseEntity = null;
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
         try{
             if (skillTestConfiguration.getSkillTestId() == null ) {
-                questionAndAnswersMap = measureMySkillsService.findRandomQuestionsByTopicIdAndDifficultyLevel(
-                        skillTestConfiguration);
+                createdResponseEntity = measureMySkillsService.findRandomQuestions(skillTestConfiguration);
             }
             else{
-                questionAndAnswersMap = measureMySkillsService.findConfiguredQuestions(skillTestConfiguration);
+                createdResponseEntity = measureMySkillsService.findConfiguredSkillTestQuestions(skillTestConfiguration);
             }
             httpStatus = HttpStatus.CREATED;
         }catch (Exception exception) {
             System.out.println("Exception:"+exception.getMessage());
         }finally {
-            createResponseEntity = new ResponseEntity<> (questionAndAnswersMap, httpStatus);
         }
-        return createResponseEntity;
+        return createdResponseEntity;
     }
 
     @PostMapping("test/save")
-    public ResponseEntity<Integer> saveSkillTest(@RequestBody SkillTest skillTest) {
+    public ResponseEntity<SkillTest> saveSkillTest(@RequestBody List<QuestionDTO> questionDTOsList) {
 
-        ResponseEntity<Integer> testSaveResponseEntity = null;
+        ResponseEntity<SkillTest> testSaveResponseEntity = null;
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-        Integer skillTestId = null;
+        SkillTest skillTest = null;
         try{
-            skillTestId = measureMySkillsService.saveSkillTest(skillTest);
+            skillTest = skillTestService.saveSkillTest(questionDTOsList);
             httpStatus = HttpStatus.OK;
         }catch (Exception exception) {
             System.out.println("Exception:"+exception.getMessage());
         }finally {
-            testSaveResponseEntity = new ResponseEntity<> (skillTestId, httpStatus);
+            testSaveResponseEntity = new ResponseEntity<> (skillTest, httpStatus);
         }
         return testSaveResponseEntity;
     }

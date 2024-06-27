@@ -11,7 +11,7 @@ import java.util.Map;
 public class SkillTest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
-    private Integer id;
+    private Integer skillTestId;
 
     @ElementCollection
     private Map<Integer, List<Integer>> questionAndAnswerIds;
