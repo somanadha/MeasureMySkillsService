@@ -13,7 +13,7 @@ import java.util.List;
 public interface QuestionManagementServiceControllerProxy {
 
     @GetMapping("qms/findRandom/{topicId}/{difficulty}/{count}")
-    public ResponseEntity<List<QuestionDTO>> findRandomQuestions(@PathVariable Integer topicId,
+    ResponseEntity<List<QuestionDTO>> findRandomQuestions(@PathVariable Integer topicId,
                                                                  @PathVariable Integer difficulty,
                                                                  @PathVariable Integer count);
 

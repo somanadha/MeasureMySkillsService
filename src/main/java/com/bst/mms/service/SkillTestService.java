@@ -1,41 +1,60 @@
 package com.bst.mms.service;
 
+import com.bst.mms.controller.proxy.QuestionManagementServiceControllerProxy;
 import com.bst.mms.dto.QuestionDTO;
 import com.bst.mms.entity.SkillTest;
+import com.bst.mms.entity.SkillTestConfiguration;
 import com.bst.mms.repository.SkillTestRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class SkillTestService {
 
     @Autowired
+    private QuestionManagementServiceControllerProxy questionManagementServiceControllerProxy;
+
+    @Autowired
     private SkillTestRepository skillTestRepository;
 
-    public SkillTest saveSkillTest(List<QuestionDTO> questionDTOsList) {
-        SkillTest skillTest = new SkillTest();
+    @Autowired
+    SkillTestConfigurationService skillTestConfigurationService;
 
-        Map<Integer, List<Integer>> questionAndAnswerIds = new HashMap<>();
+    public  SkillTest createSkillTest(SkillTestConfiguration skillTestConfiguration) {
 
-        questionDTOsList.forEach(questionDTO -> questionAndAnswerIds.put(questionDTO.getQuestionId(),
-                questionDTO.getAnswerOptionIds()));
+        ResponseEntity<List<QuestionDTO>> createdResponseEntity =
+                questionManagementServiceControllerProxy.findRandomQuestions(skillTestConfiguration.getTopicId(),
+                        skillTestConfiguration.getDifficultyLevel(), skillTestConfiguration.getQuestionCount());
 
-        skillTest.setQuestionAndAnswerIds(questionAndAnswerIds);
+        List<QuestionDTO> questionDTOList = Objects.requireNonNull(createdResponseEntity.getBody());
 
-        return skillTestRepository.save(skillTest);
+        SkillTest skillTest = new SkillTest(questionDTOList);
+        skillTest = saveSkillTest(skillTest);
+
+        skillTestConfiguration.setSkillTestId(skillTest.getSkillTestId());
+        skillTestConfigurationService.saveSkillTestConfiguration(skillTestConfiguration);
+        return skillTest;
     }
 
-    public List<Integer> findConfiguredQuestionIds(Integer skillTestId) {
-        List<Integer> questionIdsList = new ArrayList<Integer>();
+    public SkillTest findSkillTest(Integer skillTestId) {
+        SkillTest skillTest = skillTestRepository.findById(skillTestId).orElse(null);
 
-        skillTestRepository.findById(skillTestId).ifPresent(skillTest -> skillTest.getQuestionAndAnswerIds().forEach(
-                (questionId, answerIdsList) ->questionIdsList.add(questionId)));
+        if (skillTest != null) {
+            List<QuestionDTO> questionDTOList =
+                    questionManagementServiceControllerProxy.findQuestionsByQuestionIdList(
+                            skillTest.extractQuestionIDList()).getBody();
 
-        return questionIdsList;
+            skillTest.setQuestionDTOList(questionDTOList);
+        }
+        return skillTest;
+    }
+
+    public SkillTest saveSkillTest(SkillTest skillTest) {
+        skillTest.syncFromUserSelectedAnswers();
+        SkillTest dummySkillSet = skillTestRepository.save(skillTest);
+        return skillTest;
     }
 }
