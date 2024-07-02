@@ -63,10 +63,14 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-
+		<dependency>
+			<groupId>com.bst.mms</groupId>
+			<artifactId>MeasureMySkillsDTO</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 	<build>
-		<finalName>measure_my_skills</finalName>
+		<finalName>measure-my-skills-service</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
